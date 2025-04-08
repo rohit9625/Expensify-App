@@ -43,6 +43,7 @@ function Composer(
     const markdownStyle = useMarkdownStyle(value, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isPastingImage = useRef(false);
 
     useEffect(() => {
         if (!textInput.current || !textInput.current.setSelection || !selection || isComposerFullSize) {
@@ -89,12 +90,24 @@ function Composer(
         [onClearProp],
     );
 
+    const handleChangeText = useCallback(
+        (text: string) => {
+            if (isPastingImage.current) {
+                return;
+            }
+            props.onChangeText?.(text);
+        },
+        [props.onChangeText]
+    )
+
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
             const clipboardContent = e.nativeEvent.items.at(0);
             if (clipboardContent?.type === 'text/plain') {
+                isPastingImage.current = false;
                 return;
             }
+            isPastingImage.current = true;
             const mimeType = clipboardContent?.type ?? '';
             const fileURI = clipboardContent?.data;
             const baseFileName = fileURI?.split('/').pop() ?? 'file';
@@ -103,6 +116,11 @@ function Composer(
             const fileName = `${stem}.${fileExtension}`;
             const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
             onPasteFile(file);
+
+            // Reset isPasting after a slight delay
+            setTimeout(()=> {
+                isPastingImage.current = false;
+            }, 50)
         },
         [onPasteFile],
     );
@@ -126,6 +144,7 @@ function Composer(
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
             readOnly={isDisabled}
+            onChangeText={handleChangeText}
             onPaste={pasteFile}
             onClear={onClear}
         />
