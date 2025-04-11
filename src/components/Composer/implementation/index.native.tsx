@@ -74,6 +74,7 @@ function Composer(
         if (typeof ref !== 'function' || textInput.current === null) {
             return;
         }
+        isPastingImage.current = false;
 
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
@@ -116,11 +117,6 @@ function Composer(
             const fileName = `${stem}.${fileExtension}`;
             const file: FileObject = {uri: fileURI, name: fileName, type: mimeType};
             onPasteFile(file);
-
-            // Reset isPasting after a slight delay
-            setTimeout(()=> {
-                isPastingImage.current = false;
-            }, 50)
         },
         [onPasteFile],
     );
