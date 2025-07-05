@@ -1,6 +1,6 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
+import {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,6 +8,8 @@ import {setDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import CalendarPicker from './CalendarPicker';
 import type {DatePickerProps} from './types';
+import variables from '@styles/variables';
+import useTheme from '@hooks/useTheme';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -38,6 +40,7 @@ function DatePickerModal({
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -59,7 +62,16 @@ function DatePickerModal({
         setSelectedDate(newValue);
     };
 
-    return (
+    return !isSmallScreenWidth ? (
+        <View style={[styles.defaultModalContainer, { borderWidth: 1, borderColor: theme.border, borderRadius: variables.componentBorderRadiusLarge }]}>
+            <CalendarPicker
+                minDate={minDate}
+                maxDate={maxDate}
+                value={selectedDate}
+                onSelected={handleDateSelection}
+            />
+        </View>
+    ) : (
         <PopoverWithMeasuredContent
             anchorRef={anchorRef}
             isVisible={isVisible}
