@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -16,14 +16,14 @@ import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsAction
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
+import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported, openReport, openUnreportedExpense} from '@libs/actions/Report';
 import {getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {isSecondaryActionAPaymentOption, selectPaymentType} from '@libs/PaymentUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {getConnectedIntegration, getValidConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
@@ -50,6 +50,7 @@ import {
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {
     allHavePendingRTERViolation,
+    getDuplicateTransactions,
     hasDuplicateTransactions,
     isDuplicate,
     isExpensifyCardTransaction,
@@ -220,6 +221,32 @@ function MoneyReportHeader({
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],
     );
+    const threadID = transactionThreadReportID;
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`, {canBeMissing: true});
+
+    const openReports = async() => {
+        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        const transactionID = getLinkedTransactionID(reportAction, report?.reportID) ?? undefined;
+        // Pass voilations not allVoilations because we only care about voilations related to current transactionID
+        const transactions = getDuplicateTransactions(transactionID, violations)
+        const transactionsFromDifferenReport = (transactions ?? []).filter(
+            (transaction): transaction is OnyxTypes.Transaction => !!transaction && transaction?.reportID !== report?.reportID
+        );
+        const uniqueTransactions = transactionsFromDifferenReport.reduce((acc: OnyxTypes.Transaction[], txn) => {
+            if(!txn?.reportID) return acc;
+            if (acc.some(t => t.reportID === txn.reportID)) {
+                return acc;
+            }
+            return acc.concat(txn);
+        }, [])
+
+        // Sequentially open reports — or use Promise.all for parallel
+        uniqueTransactions?.map((transaction) => {
+            if (transaction?.reportID) {
+                openReport(transaction.reportID);
+            }
+        })
+    }
 
     const messagePDF = useMemo(() => {
         if (!reportPDFFilename) {
@@ -661,6 +688,7 @@ function MoneyReportHeader({
                     if (!threadID) {
                         return;
                     }
+                    openReports();
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
                 }}
             />

@@ -881,6 +881,22 @@ function getTransactionViolations(transaction: OnyxEntry<Transaction | SearchTra
     return transactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]?.filter((violation) => !isViolationDismissed(transaction, violation));
 }
 
+function getDuplicateTransactions(transactionID: string | undefined, allViolations: OnyxCollection<TransactionViolations>) {
+    if (!transactionID) {
+        return;
+    }
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]
+    const duplicateTransactionIDs = allViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]
+        ?.filter((voilation) => !isViolationDismissed(transaction, voilation))
+        ?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
+
+    const transactionIDs = transactionID ? [transactionID, ...duplicateTransactionIDs] : duplicateTransactionIDs;
+
+    return transactionIDs
+        .map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`])
+        .sort((a, b) => new Date(a?.created ?? '').getTime() - new Date(b?.created ?? '').getTime())
+}
+
 /**
  * Check if there is pending rter violation in transactionViolations.
  */
@@ -1698,6 +1714,7 @@ export {
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
+    getDuplicateTransactions,
     hasPendingRTERViolation,
     allHavePendingRTERViolation,
     hasPendingUI,
