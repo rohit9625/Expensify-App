@@ -2469,6 +2469,7 @@ function buildOnyxDataForTrackExpense({
         );
 
         if (actionableTrackExpenseWhisper && !iouReport) {
+            console.log(`[buildOnyxDataForTrackExpense] actionableTrackExpense: ${JSON.stringify(actionableTrackExpenseWhisper, null, 2)}`)
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
@@ -2500,6 +2501,7 @@ function buildOnyxDataForTrackExpense({
     }
 
     if (iouReport) {
+        console.log(`[buildOnyxDataForTrackExpense] It is an IOU Report :)`)
         optimisticData.push(
             {
                 onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
@@ -3911,6 +3913,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     if (!isPolicyExpenseChat) {
         actionableTrackExpenseWhisper = buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID);
     }
+    console.log(`[getTrackExpenseInformation] IsPolicyExpenseChat: ${isPolicyExpenseChat}`)
 
     // STEP 5: Build Onyx Data
     const trackExpenseOnyxData = buildOnyxDataForTrackExpense({
@@ -4888,6 +4891,7 @@ const getConvertTrackedExpenseInformation = (
 
     // Build modified expense report action with the transaction changes
     const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, moneyRequestReportID ?? CONST.REPORT.UNREPORTED_REPORT_ID);
+    console.log(`[getConvertTrackedExpenseInformation] ModifiedExpenseReportAction: ${JSON.stringify(modifiedExpenseReportAction, null, 2)}`);
 
     optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -5009,6 +5013,10 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         transactionThreadReportID,
         CONST.IOU.ACTION.SUBMIT,
     );
+    console.log(`[convertTrackedExpenseToRequest:1] OptimisticData: ${JSON.stringify(optimisticData, null, 2)}`);
+    console.log(`[convertTrackedExpenseToRequest:2] SuccessData: ${JSON.stringify(successData, null, 2)}`);
+    console.log(`[convertTrackedExpenseToRequest:3] ConvertTransactionOptimisticData: ${JSON.stringify(convertTransactionOptimisticData, null, 2)}`)
+    console.log(`[convertTrackedExpenseToRequest:4] ConvertTransactionSuccessData: ${JSON.stringify(convertTransactionSuccessData, null, 2)}`)
 
     optimisticData?.push(...convertTransactionOptimisticData);
     successData?.push(...convertTransactionSuccessData);
@@ -5341,6 +5349,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           customUnitRateID,
                       }
                     : undefined;
+            console.log(`[requestMoney] ConvertingTrackedExpenseToRequest`)
             convertTrackedExpenseToRequest({
                 payerParams: {
                     accountID: payerAccountID,
@@ -5640,6 +5649,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
     const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    console.log(`[tracExpense:IOU.ts] IsMovingTransactionFromTrackExpense: ${isMovingTransactionFromTrackExpense}`)
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
     const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;

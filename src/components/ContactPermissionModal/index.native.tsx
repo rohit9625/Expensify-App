@@ -10,7 +10,7 @@ import type {ContactPermissionModalProps} from './types';
 
 let hasShownContactImportPromptThisSession = false;
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [isModalVisible, setIsModalVisible] = useState(true);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -9852,6 +9852,9 @@ function createDraftTransactionAndNavigateToParticipantSelector(
         return;
     }
 
+    console.log(`[createDraftTransactionAndNavigateToParticipantSelector] ReportActions: ${JSON.stringify(reportActions, null, 2)}`)
+    console.log(`[createDraftTransactionAndNavigateToParticipantSelector] Transaction: ${JSON.stringify(transaction, null, 2)}`)
+
     const linkedTrackedExpenseReportAction = Object.values(reportActions)
         .filter(Boolean)
         .find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === transactionID);

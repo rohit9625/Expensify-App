@@ -174,6 +174,7 @@ function IOURequestStepParticipants({
                 trackExpense();
                 return;
             }
+            console.log(`[addParticipant] FirstParticipant: ${JSON.stringify(firstParticipant, null, 2)}`)
 
             const firstParticipantReportID = val.at(0)?.reportID;
             const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);

@@ -427,6 +427,9 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            console.log(`[requestMoney:IOURequestStepConfirmation] Requesting Money, Report: ${JSON.stringify(report, null, 2)}`);
+            console.log(`[requestMoney:IOURequestStepConfirmation] SelectedParticipant: ${JSON.stringify(participant, null, 2)}`);
+
             const optimisticChatReportID = generateReportID();
             const optimisticCreatedReportActionID = rand64();
             const optimisticIOUReportID = generateReportID();
@@ -548,6 +551,7 @@ function IOURequestStepConfirmation({
                 return;
             }
             const participant = selectedParticipants.at(0);
+            console.log(`[trackExpense] SelectedParticipant: ${JSON.stringify(participant, null, 2)}`)
             if (!participant) {
                 return;
             }
@@ -854,6 +858,7 @@ function IOURequestStepConfirmation({
                     return;
                 }
 
+                console.log(`[createTransaction1:IOURequestStepConfirmation] SelectedParticipants: ${JSON.stringify(selectedParticipants, null, 2)}`)
                 // Otherwise, the money is being requested through the "Manual" flow with an attached image and the GPS coordinates are not needed.
                 requestMoney(selectedParticipants);
                 return;
