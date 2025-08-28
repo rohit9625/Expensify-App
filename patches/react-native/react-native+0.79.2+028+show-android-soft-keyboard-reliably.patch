@@ -1,0 +1,21 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+index 095313e..b9dc14f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
+@@ -1164,6 +1164,16 @@ public class ReactEditText extends AppCompatEditText {
+     mDidAttachToWindow = true;
+   }
+ 
++  @Override
++  public void onWindowFocusChanged(boolean hasWindowFocus) {
++    if (hasWindowFocus && mAutoFocus) {
++      requestFocus();
++      post(() -> {
++        showSoftKeyboard();
++      });
++    }
++  }
++
+   @Override
+   public void onFinishTemporaryDetach() {
+     super.onFinishTemporaryDetach();
