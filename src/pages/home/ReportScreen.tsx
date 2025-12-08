@@ -112,6 +112,8 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext} from './ReportScreenContext';
+import { transaction } from 'tests/data/Invoice';
+import { S } from 'memfs/lib/constants';
 
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -353,6 +355,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const shouldWaitForTransactions = !isOffline && shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata);
 
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
+
+    useEffect(() => {
+        if(reportTransactions.length > 2) {
+            console.log(`Transactions: ${JSON.stringify(reportTransactions, null, 2)}`)
+        }
+        console.log(`All Report Transactions: ${allReportTransactions.length}`)
+    }, [allReportTransactions])
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {

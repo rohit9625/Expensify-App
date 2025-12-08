@@ -174,6 +174,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
+        console.log(`[onSaveSplitExpense] DraftTransaction: ${JSON.stringify(draftTransaction, null, 2)}`)
+
         updateSplitTransactionsFromSplitExpensesFlow({
             allTransactionsList: allTransactions,
             allReportsList: allReports,

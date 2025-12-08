@@ -3044,6 +3044,7 @@ function getDeleteTrackExpenseInformation(
     resolution = '',
     shouldRemoveIOUTransaction = true,
 ) {
+    console.log(`[getDeleteTrackExpenseInformation] TransactionID: ${transactionID}`)
     // STEP 1: Get all collections we're updating
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -3091,6 +3092,7 @@ function getDeleteTrackExpenseInformation(
 
     // STEP 4: Build Onyx data
     const optimisticData: OnyxUpdate[] = [];
+    console.log(`[getDeleteTrackExpenseInformation] ShouldDeleteTransactionFromOnyx: ${shouldDeleteTransactionFromOnyx} and ShouldRemoveIOUTransaction: ${shouldRemoveIOUTransaction}`)
 
     if (shouldDeleteTransactionFromOnyx && shouldRemoveIOUTransaction) {
         optimisticData.push({
@@ -14155,6 +14157,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     if (!transaction) {
         return;
     }
+    console.log(`[initSplitExpense] Current Transaction: ${JSON.stringify(transaction, null, 2)}`)
 
     const reportID = transaction.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
     const originalTransactionID = transaction?.comment?.originalTransactionID;
@@ -14162,6 +14165,7 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
 
     if (isExpenseSplit) {
+        console.log(`[initSplitExpense] It is an Expense Split`)
         const relatedTransactions = getChildTransactions(transactions, reports, originalTransactionID);
         const transactionDetails = getTransactionDetails(originalTransaction);
         const splitExpenses = relatedTransactions.map((currentTransaction) => initSplitExpenseItemData(currentTransaction));
@@ -14418,6 +14422,8 @@ function updateSplitTransactions({
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
+    console.log(`Original Transaction: ${JSON.stringify(originalTransaction, null, 2)}`);
+    console.log(`First IOU: ${JSON.stringify(firstIOU, null, 2)}`);
 
     const policyTags = getPolicyTagsData(expenseReport?.policyID);
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
@@ -14642,6 +14648,7 @@ function updateSplitTransactions({
     const undeletedTransactions = originalChildTransactions.filter(
         (currentTransaction) => !processedChildTransactionIDs.includes(currentTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID),
     );
+    console.log(`Undeleted Transactions: ${undeletedTransactions.length}`);
 
     for (const undeletedTransaction of undeletedTransactions) {
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction?.transactionID}`];
@@ -14721,6 +14728,15 @@ function updateSplitTransactions({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                 value: updatedReportAction,
+            });
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
+                value: {
+                    ...originalTransaction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
             });
 
             failureData.push({

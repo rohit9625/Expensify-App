@@ -347,7 +347,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpenses,
         splitExpensesTotal,
         participants,
-        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
