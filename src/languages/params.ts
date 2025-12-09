@@ -897,6 +897,10 @@ type FocusModeUpdateParams = {
     priorityModePageUrl: string;
 };
 
+type FormulaFieldParams = {
+    fields: string;
+}
+
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -1189,4 +1193,5 @@ export type {
     ReportFieldParams,
     FocusModeUpdateParams,
     TagSelectionParams,
+    FormulaFieldParams,
 };

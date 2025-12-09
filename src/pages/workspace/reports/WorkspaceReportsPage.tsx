@@ -158,7 +158,27 @@ function WorkspaceReportFieldsPage({
     );
 
     const titleFieldError = policy?.errorFields?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE];
-    const reportTitleErrors = getLatestErrorField({errorFields: titleFieldError ?? {}}, 'defaultValue');
+    const reportTitleErrors = useMemo(() => {
+        const latestError = getLatestErrorField({ errorFields: titleFieldError ?? {} }, 'defaultValue');
+        const errorMessage = Object.values(latestError)[0];
+        const match = errorMessage?.match(/\{[^}]+\}/);
+
+        const fields = match?.[0] ?? '';
+        console.log(`Latest Error: ${JSON.stringify(latestError, null, 2)}`);
+        console.log(`Fields: ${fields}`);
+
+        if (errorMessage?.includes(CONST.ERROR.FORMULA_FIELD_NOT_RECOGNIZED)) {
+            return {
+                ...latestError,
+                [Object.keys(latestError)[0] ?? 'default']: translate(
+                    'workspace.reportFields.formulaFieldNotRecognized',
+                    { fields: fields },
+                ),
+            };
+        }
+
+        return latestError;
+    }, [titleFieldError, translate]);
 
     const reportTitlePendingFields = policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields ?? {};
 

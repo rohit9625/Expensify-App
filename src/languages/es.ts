@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, TagSelectionParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, FormulaFieldParams, TagSelectionParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -4792,6 +4792,7 @@ ${amount} para ${merchant} - ${date}`,
             circularReferenceError: 'Este campo no puede hacer referencia a sí mismo. Por favor, actualizar.',
             reportFieldInitialValueRequiredError: 'Elige un valor inicial de campo de informe',
             genericFailureMessage: 'Se ha producido un error al actualizar el campo de informe. Por favor, inténtalo de nuevo.',
+            formulaFieldNotRecognized: ({fields}) => `Campo de fórmula no ${fields} reconocido`,
         },
         tags: {
             tagName: 'Nombre de etiqueta',

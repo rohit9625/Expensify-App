@@ -82,6 +82,7 @@ import type {
     FlightParams,
     FocusModeUpdateParams,
     FormattedMaxLengthParams,
+    FormulaFieldParams,
     GoBackMessageParams,
     ImportedTagsMessageParams,
     ImportedTypesParams,
@@ -5126,6 +5127,7 @@ const translations = {
             circularReferenceError: "This field can't refer to itself. Please update.",
             reportFieldInitialValueRequiredError: 'Please choose a report field initial value',
             genericFailureMessage: 'An error occurred while updating the report field. Please try again.',
+            formulaFieldNotRecognized: ({fields}: FormulaFieldParams) => `Formula field ${fields} not recognized`,
         },
         tags: {
             tagName: 'Tag name',
