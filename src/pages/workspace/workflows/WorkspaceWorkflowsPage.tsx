@@ -64,9 +64,44 @@ import type SCREENS from '@src/SCREENS';
 import type {ToggleSettingOptionRowProps} from './ToggleSettingsOptionRow';
 import ToggleSettingOptionRow from './ToggleSettingsOptionRow';
 import {getAutoReportingFrequencyDisplayNames} from './WorkspaceAutoReportingFrequencyPage';
+import { ACHAccount } from '@src/types/onyx/Policy';
+import { AccountData } from '@src/types/onyx';
+import { ACHDataReimbursementAccount } from '@src/types/onyx/ReimbursementAccount';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+type WorkspaceConnectedBankAccount = {
+    bankName: string;
+    addressName: string;
+    state: string;
+    accountData?: ACHAccount | AccountData;
+}
+
+function mapToWorkspaceConnectedBankAccount(
+    policyID?: string,
+    accountData?: AccountData,
+    achData?: ACHDataReimbursementAccount,
+): WorkspaceConnectedBankAccount | undefined {
+    if (!policyID || (!accountData && !achData)) return;
+
+    if (accountData) {
+        return {
+            bankName: accountData.additionalData?.bankName ?? '',
+            addressName: accountData.addressName ?? '',
+            accountData,
+            state: accountData.state ?? '',
+        }
+    }
+
+    if (achData && achData.policyID === policyID) {
+        return {
+            bankName: achData?.bankName ?? '',
+            addressName: achData.addressName ?? '',
+            accountData: achData,
+            state: achData.state ?? '',
+        }
+    }
+}
 
 function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const {translate, localeCompare} = useLocalize();
@@ -186,14 +221,20 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const optionItems: ToggleSettingOptionRowProps[] = useMemo(() => {
         const isBankAccountFullySetup = policy?.achAccount && policy?.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const bankAccountConnectedToWorkspace = Object.values(bankAccountList ?? {}).find((account) => account?.accountData?.additionalData?.policyID === policy?.id);
-        const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.additionalData?.bankName ?? '');
-        const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (bankAccountConnectedToWorkspace?.accountData?.addressName ?? '');
-        const accountData = isBankAccountFullySetup ? policy?.achAccount : bankAccountConnectedToWorkspace?.accountData;
+        const workspaceConnectedBankAccount: WorkspaceConnectedBankAccount | undefined = mapToWorkspaceConnectedBankAccount(
+            policy?.id,
+            bankAccountConnectedToWorkspace?.accountData,
+            reimbursementAccount?.achData,
+        );
+        console.log(`ReimbursementAccount Policy ID: ${reimbursementAccount?.achData?.policyID} and Current PolicyID : ${policy?.id}`)
+        const bankName = isBankAccountFullySetup ? (policy?.achAccount?.bankName ?? '') : (workspaceConnectedBankAccount?.bankName ?? '');
+        const addressName = isBankAccountFullySetup ? (policy?.achAccount?.addressName ?? '') : (workspaceConnectedBankAccount?.addressName ?? '');
+        const accountData = isBankAccountFullySetup ? policy?.achAccount : workspaceConnectedBankAccount?.accountData;
         const bankTitle = addressName.includes(CONST.MASKED_PAN_PREFIX) ? bankName : addressName;
-        const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (bankAccountConnectedToWorkspace?.accountData?.state ?? '');
+        const state = isBankAccountFullySetup ? (policy?.achAccount?.state ?? '') : (workspaceConnectedBankAccount?.accountData?.state ?? '');
         const isAccountInSetupState = isBankAccountPartiallySetup(state);
 
-        const shouldShowBankAccount = (!!isBankAccountFullySetup || !!bankAccountConnectedToWorkspace) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        const shouldShowBankAccount = (!!isBankAccountFullySetup || !!workspaceConnectedBankAccount) && policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
         const bankIcon = getBankIcon({bankName: bankName as BankName, isCard: false, styles});
 
