@@ -2472,6 +2472,7 @@ function getValidOptions(
     let selfDMChat: SearchOptionData | undefined;
 
     const searchTerms = processSearchString(searchString);
+    let hasMore = false;
     if (includeRecentReports) {
         // if maxElements is passed, filter the recent reports by searchString and return only most recent reports (@see recentReportsComparator)
 
@@ -2563,8 +2564,12 @@ function getValidOptions(
             ).at(0);
         }
 
+        let hasMoreRecentReports = false;
         if (maxRecentReportElements) {
+            hasMoreRecentReports = recentReportOptions.length > maxRecentReportElements;
             recentReportOptions = recentReportOptions.splice(0, maxRecentReportElements);
+        } else if (maxElements !== undefined) {
+            hasMoreRecentReports = recentReportOptions.length === maxElements;
         }
         recentReportOptions = prepareReportOptionsForDisplay(
             recentReportOptions,
@@ -2623,6 +2628,7 @@ function getValidOptions(
         recentReportOptions = filterReports(recentAttendees as SearchOptionData[], searchTerms) as Array<SearchOption<Report>>;
 
         if (maxRecentReportElements) {
+            hasMore = hasMore || recentReportOptions.length > maxRecentReportElements;
             recentReportOptions = recentReportOptions.slice(0, maxRecentReportElements);
         }
     }
@@ -2671,6 +2677,9 @@ function getValidOptions(
             ? Math.max(maxElements - recentReportOptions.length - workspaceChats.length - (!selfDMChat ? 1 : 0), MIN_PERSONAL_DETAILS_SLOTS)
             : undefined;
         personalDetailsOptions = optionsOrderBy(options.personalDetails, personalDetailsComparator, maxPersonalDetailsElements, filteringFunction, true);
+        
+        const hasMorePersonalDetails = maxPersonalDetailsElements !== undefined && personalDetailsOptions.length === maxPersonalDetailsElements;
+        hasMore = hasMore || hasMorePersonalDetails;
 
         for (let i = 0; i < personalDetailsOptions.length; i++) {
             const personalDetail = personalDetailsOptions.at(i);
@@ -2711,6 +2720,7 @@ function getValidOptions(
         userToInvite,
         workspaceChats,
         selfDMChat,
+        hasMore,
     };
 }
 
